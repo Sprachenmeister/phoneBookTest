@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 
 mongoose.set('strictQuery', false)
+mongoose.set('runValidators', true)
 
 const url = process.env.MONGODB_URI
 
@@ -14,12 +15,24 @@ mongoose
         console.log('error connecting to MongoDB:', error.message)
     })
 
-const noteSchema = new mongoose.Schema({
-    name: String,
-    number: String,
+const personSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        minlength: 3,
+    },
+    number: {
+        type: String,
+        minLength: 8,
+        validate: {
+            validator: function(value) {
+                return /\d{3}-\d{7}/.test(value)
+            },
+            message: props => 'Enter valid number.'
+        }
+    }
 })
 
-noteSchema.set('toJSON', {
+personSchema.set('toJSON', {
     transform: (document, returnedObject) => {
         returnedObject.id = returnedObject._id.toString()
         delete returnedObject._id
@@ -27,4 +40,4 @@ noteSchema.set('toJSON', {
     }
 })
 
-module.exports = mongoose.model('Person', noteSchema)
+module.exports = mongoose.model('Person', personSchema)
